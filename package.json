@@ -1,6 +1,6 @@
 {
   "name": "lovelace-lifx-theme-picker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Browse and apply the 42 built-in LIFX themes from a Lovelace card with an OkLCh mesh-gradient preview.",
   "type": "module",
   "main": "dist/lifx-theme-picker.js",
