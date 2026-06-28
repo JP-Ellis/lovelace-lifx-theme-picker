@@ -85,7 +85,7 @@ unions them.
 
 Implemented in `src/mesh-preview.ts`. Pure-black stops are filtered out
 before stacking (the `tranquil` palette has one) to avoid the radials being
-sucked into a dark hole. If the palette is *only* black, we keep it.
+sucked into a dark hole. If the palette is _only_ black, we keep it.
 
 Let `N = colors.length` after filtering:
 
@@ -117,26 +117,26 @@ degradation is enough for v0.1.0.
 
 `ha-form`-based editor with the schema above:
 
-| Field            | Selector                                          |
-|------------------|---------------------------------------------------|
-| `entity`         | `entity` filtered to `light` domain               |
-| `area_id`        | `area`                                            |
-| `name`           | `text`                                            |
-| `default_theme`  | `select` dropdown of the 42 theme names           |
-| `transition`     | `number` 0..60 step 0.5                           |
-| `power_on`       | `boolean`                                         |
+| Field           | Selector                                |
+| --------------- | --------------------------------------- |
+| `entity`        | `entity` filtered to `light` domain     |
+| `area_id`       | `area`                                  |
+| `name`          | `text`                                  |
+| `default_theme` | `select` dropdown of the 42 theme names |
+| `transition`    | `number` 0..60 step 0.5                 |
+| `power_on`      | `boolean`                               |
 
 A helper line beneath reminds the user to set at least one of entity/area.
 
 ## Behaviour matrix
 
-| Event                                        | Effect                                                                       |
-|----------------------------------------------|------------------------------------------------------------------------------|
-| Card mounted with `default_theme`            | Theme preselected; service is **not** auto-called                            |
-| User taps a row                              | Selection updates; `lifx.paint_theme` called immediately                     |
-| Service call rejects                         | Error message shown in status strip                                          |
-| User reconfigures while in flight            | Old call continues; UI reflects new config on next render                    |
-| Light/area unavailable                       | Service call returns an error; surfaced verbatim in status strip             |
+| Event                             | Effect                                                           |
+| --------------------------------- | ---------------------------------------------------------------- |
+| Card mounted with `default_theme` | Theme preselected; service is **not** auto-called                |
+| User taps a row                   | Selection updates; `lifx.paint_theme` called immediately         |
+| Service call rejects              | Error message shown in status strip                              |
+| User reconfigures while in flight | Old call continues; UI reflects new config on next render        |
+| Light/area unavailable            | Service call returns an error; surfaced verbatim in status strip |
 
 ## Out of scope for v0.1.0
 

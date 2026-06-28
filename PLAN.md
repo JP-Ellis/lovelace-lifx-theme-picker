@@ -2,7 +2,7 @@
 
 ## File structure
 
-```
+```text
 lovelace-lifx-theme-picker/
 ├── .github/workflows/release.yml
 ├── CHANGELOG.md

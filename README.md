@@ -45,6 +45,7 @@ LIFX bulbs actually does when it paints a theme across a zone.
    [release](https://github.com/JP-Ellis/lovelace-lifx-theme-picker/releases).
 2. Copy it to `<config>/www/community/lovelace-lifx-theme-picker/`.
 3. Add a Lovelace resource:
+
    ```yaml
    url: /local/community/lovelace-lifx-theme-picker/lifx-theme-picker.js
    type: module
