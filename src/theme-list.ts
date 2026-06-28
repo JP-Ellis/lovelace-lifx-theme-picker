@@ -4,12 +4,12 @@
 // a small mesh-gradient swatch. Tapping a row fires `theme-selected` with the
 // theme name in `detail`.
 
-import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import type { PaletteMap } from './palettes.js';
-import './mesh-preview.js';
+import { css, html, LitElement } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import type { PaletteMap } from "./palettes.js";
+import "./mesh-preview.js";
 
-@customElement('lifx-theme-list')
+@customElement("lifx-theme-list")
 export class LifxThemeList extends LitElement {
   @property({ attribute: false }) palettes: PaletteMap = {};
   @property({ attribute: false }) themes: readonly string[] = [];
@@ -83,10 +83,10 @@ export class LifxThemeList extends LitElement {
   private _renderRow(name: string) {
     const palette = this.palettes[name] ?? [];
     const isSelected = name === this.selected;
-    const label = name.replace(/_/g, ' ');
+    const label = name.replace(/_/g, " ");
     return html`
       <div
-        class="row ${isSelected ? 'selected' : ''}"
+        class="row ${isSelected ? "selected" : ""}"
         role="option"
         aria-selected=${isSelected}
         tabindex="0"
@@ -102,18 +102,18 @@ export class LifxThemeList extends LitElement {
   }
 
   private _onKey(e: KeyboardEvent, name: string): void {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       this._select(name);
       return;
     }
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
-      const dir = e.key === 'ArrowDown' ? 1 : -1;
+      const dir = e.key === "ArrowDown" ? 1 : -1;
       const idx = this.themes.indexOf(name);
       const next = this.themes[idx + dir];
       if (next) {
-        const rows = this.renderRoot.querySelectorAll<HTMLElement>('.row');
+        const rows = this.renderRoot.querySelectorAll<HTMLElement>(".row");
         rows[idx + dir]?.focus();
       }
     }
@@ -121,7 +121,7 @@ export class LifxThemeList extends LitElement {
 
   private _select(name: string): void {
     this.dispatchEvent(
-      new CustomEvent('theme-selected', {
+      new CustomEvent("theme-selected", {
         detail: { theme: name },
         bubbles: true,
         composed: true,
@@ -132,6 +132,6 @@ export class LifxThemeList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lifx-theme-list': LifxThemeList;
+    "lifx-theme-list": LifxThemeList;
   }
 }

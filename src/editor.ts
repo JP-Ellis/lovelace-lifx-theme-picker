@@ -1,38 +1,38 @@
 // Visual editor for <lifx-theme-picker>.
 
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { THEME_NAMES } from './palettes.js';
+import { css, html, LitElement } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { THEME_NAMES } from "./palettes.js";
 import {
   DEFAULTS,
   type HomeAssistant,
   type LifxThemePickerConfig,
-} from './types.js';
+} from "./types.js";
 
 const SCHEMA = [
-  { name: 'entity', selector: { entity: { domain: 'light' } } },
-  { name: 'area_id', selector: { area: {} } },
-  { name: 'name', selector: { text: {} } },
+  { name: "entity", selector: { entity: { domain: "light" } } },
+  { name: "area_id", selector: { area: {} } },
+  { name: "name", selector: { text: {} } },
   {
-    name: 'default_theme',
+    name: "default_theme",
     selector: {
       select: {
-        mode: 'dropdown',
+        mode: "dropdown",
         options: THEME_NAMES.map((n) => ({
           value: n,
-          label: n.replace(/_/g, ' '),
+          label: n.replace(/_/g, " "),
         })),
       },
     },
   },
   {
-    name: 'transition',
-    selector: { number: { min: 0, max: 60, step: 0.5, mode: 'box' } },
+    name: "transition",
+    selector: { number: { min: 0, max: 60, step: 0.5, mode: "box" } },
   },
-  { name: 'power_on', selector: { boolean: {} } },
+  { name: "power_on", selector: { boolean: {} } },
 ];
 
-@customElement('lifx-theme-picker-editor')
+@customElement("lifx-theme-picker-editor")
 export class LifxThemePickerEditor extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() private _config?: LifxThemePickerConfig;
@@ -55,7 +55,7 @@ export class LifxThemePickerEditor extends LitElement {
   private _valueChanged(ev: CustomEvent): void {
     const value = ev.detail.value as LifxThemePickerConfig;
     this.dispatchEvent(
-      new CustomEvent('config-changed', {
+      new CustomEvent("config-changed", {
         detail: { config: value },
         bubbles: true,
         composed: true,
@@ -63,27 +63,29 @@ export class LifxThemePickerEditor extends LitElement {
     );
   }
 
-  private _computeLabel = (s: { name: string }): string => {
+  private readonly _computeLabel = (s: { name: string }): string => {
     switch (s.name) {
-      case 'entity':
-        return 'Light entity (optional if area is set)';
-      case 'area_id':
-        return 'Area (optional if entity is set)';
-      case 'name':
-        return 'Card title';
-      case 'default_theme':
-        return 'Default theme';
-      case 'transition':
-        return 'Transition (seconds)';
-      case 'power_on':
-        return 'Power on if off';
+      case "entity":
+        return "Light entity (optional if area is set)";
+      case "area_id":
+        return "Area (optional if entity is set)";
+      case "name":
+        return "Card title";
+      case "default_theme":
+        return "Default theme";
+      case "transition":
+        return "Transition (seconds)";
+      case "power_on":
+        return "Power on if off";
       default:
         return s.name;
     }
   };
 
   protected render() {
-    if (!this.hass || !this._config) return html``;
+    if (!(this.hass && this._config)) {
+      return html``;
+    }
     const data = { ...DEFAULTS, ...this._config };
     return html`
       <ha-form
@@ -102,6 +104,6 @@ export class LifxThemePickerEditor extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lifx-theme-picker-editor': LifxThemePickerEditor;
+    "lifx-theme-picker-editor": LifxThemePickerEditor;
   }
 }

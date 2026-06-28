@@ -17,16 +17,16 @@
 // stack getting sucked into a single dark sink-hole; if the *only* color in
 // the palette is black we still render it.
 
-import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { hexToOklchCss, isNearBlack } from './color.js';
+import { css, html, LitElement } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import { hexToOklchCss, isNearBlack } from "./color.js";
 
 interface RadialStop {
   position: string; // e.g. "top left", "50% 100%"
-  color: string;    // CSS oklch(...) string
+  color: string; // CSS oklch(...) string
 }
 
-@customElement('lifx-mesh-preview')
+@customElement("lifx-mesh-preview")
 export class LifxMeshPreview extends LitElement {
   @property({ attribute: false }) colors: readonly string[] = [];
 
@@ -54,12 +54,14 @@ export class LifxMeshPreview extends LitElement {
 
   private _backgroundStyle(rawColors: readonly string[]): string {
     if (!rawColors || rawColors.length === 0) {
-      return '';
+      return "";
     }
     // Filter pure-black stops, but keep at least one color so we render
     // something.
     let colors = rawColors.filter((c) => !isNearBlack(c));
-    if (colors.length === 0) colors = [rawColors[0]];
+    if (colors.length === 0) {
+      colors = [rawColors[0]];
+    }
 
     const oklchColors = colors.map((c) => hexToOklchCss(c));
 
@@ -69,7 +71,7 @@ export class LifxMeshPreview extends LitElement {
 
     if (oklchColors.length === 2) {
       return (
-        `background-image:linear-gradient(135deg in oklch, ` +
+        "background-image:linear-gradient(135deg in oklch, " +
         `${oklchColors[0]}, ${oklchColors[1]});`
       );
     }
@@ -81,7 +83,7 @@ export class LifxMeshPreview extends LitElement {
           `radial-gradient(circle at ${s.position} in oklch, ` +
           `${s.color} 0%, transparent 60%)`,
       )
-      .join(',');
+      .join(",");
     // Pick a base color from the first stop so the corners aren't blank when
     // the radials fall off. Saturate it a touch by using the first color.
     return `background-color:${oklchColors[0]};background-image:${layers};`;
@@ -91,17 +93,17 @@ export class LifxMeshPreview extends LitElement {
     const n = colors.length;
     if (n === 3) {
       return [
-        { position: '50% 0%', color: colors[0] },
-        { position: '0% 100%', color: colors[1] },
-        { position: '100% 100%', color: colors[2] },
+        { position: "50% 0%", color: colors[0] },
+        { position: "0% 100%", color: colors[1] },
+        { position: "100% 100%", color: colors[2] },
       ];
     }
     if (n === 4) {
       return [
-        { position: '0% 0%', color: colors[0] },
-        { position: '100% 0%', color: colors[1] },
-        { position: '100% 100%', color: colors[2] },
-        { position: '0% 100%', color: colors[3] },
+        { position: "0% 0%", color: colors[0] },
+        { position: "100% 0%", color: colors[1] },
+        { position: "100% 100%", color: colors[2] },
+        { position: "0% 100%", color: colors[3] },
       ];
     }
     // N ≥ 5: distribute around the perimeter. Use an ellipse-on-box mapping
@@ -126,6 +128,6 @@ export class LifxMeshPreview extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lifx-mesh-preview': LifxMeshPreview;
+    "lifx-mesh-preview": LifxMeshPreview;
   }
 }

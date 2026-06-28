@@ -1,26 +1,25 @@
 // <lifx-theme-picker> — the main card.
 
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import './mesh-preview.js';
-import './theme-list.js';
-import {
-  BUILTIN_PALETTES,
-  THEME_NAMES,
-  type PaletteMap,
-} from './palettes.js';
+import { css, html, LitElement } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import "./mesh-preview.js";
+import "./theme-list.js";
+import { BUILTIN_PALETTES, type PaletteMap, THEME_NAMES } from "./palettes.js";
 import {
   DEFAULTS,
   type HomeAssistant,
   type LifxThemePickerConfig,
-} from './types.js';
+} from "./types.js";
 
-@customElement('lifx-theme-picker')
+// Rough height hint (in ~50px rows) Lovelace uses to lay the card out.
+const CARD_SIZE = 6;
+
+@customElement("lifx-theme-picker")
 export class LifxThemePickerCard extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() private _config?: LifxThemePickerConfig;
   @state() private _selected?: string;
-  @state() private _palettes: PaletteMap = BUILTIN_PALETTES;
+  @state() private readonly _palettes: PaletteMap = BUILTIN_PALETTES;
   @state() private _busy = false;
   @state() private _error?: string;
 
@@ -110,34 +109,33 @@ export class LifxThemePickerCard extends LitElement {
   `;
 
   static getConfigElement() {
-    return document.createElement('lifx-theme-picker-editor');
+    return document.createElement("lifx-theme-picker-editor");
   }
 
   static getStubConfig(): Partial<LifxThemePickerConfig> {
-    return { entity: 'light.example' };
+    return { entity: "light.example" };
   }
 
   setConfig(config: LifxThemePickerConfig): void {
-    if (!config) throw new Error('Configuration is required');
-    if (!config.entity && !config.area_id) {
-      throw new Error('At least one of `entity` or `area_id` must be set');
+    if (!config) {
+      throw new Error("Configuration is required");
     }
-    if (config.entity && !config.entity.startsWith('light.')) {
-      throw new Error('`entity` must be a light.* entity');
+    if (!(config.entity || config.area_id)) {
+      throw new Error("At least one of `entity` or `area_id` must be set");
+    }
+    if (config.entity && !config.entity.startsWith("light.")) {
+      throw new Error("`entity` must be a light.* entity");
     }
     if (
       config.transition !== undefined &&
-      (typeof config.transition !== 'number' || config.transition < 0)
+      (typeof config.transition !== "number" || config.transition < 0)
     ) {
-      throw new Error('`transition` must be a non-negative number');
+      throw new Error("`transition` must be a non-negative number");
     }
-    if (
-      config.default_theme &&
-      !(config.default_theme in BUILTIN_PALETTES)
-    ) {
+    if (config.default_theme && !(config.default_theme in BUILTIN_PALETTES)) {
       // Don't throw — just ignore an unknown default, so we don't blow up
       // configs after a palette rename.
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: surfacing a misconfigured theme to the browser console is the intended diagnostic
       console.warn(
         `[lifx-theme-picker] unknown default_theme '${config.default_theme}'`,
       );
@@ -152,21 +150,30 @@ export class LifxThemePickerCard extends LitElement {
   }
 
   getCardSize(): number {
-    return 6;
+    return CARD_SIZE;
   }
 
   private _onSelect(e: CustomEvent<{ theme: string }>): void {
-    const theme = e.detail.theme;
+    const { theme } = e.detail;
     this._selected = theme;
+    // Fire-and-forget: _apply handles its own errors (sets `_error`) and never
+    // rejects, so there is nothing to await here.
+    // biome-ignore lint/complexity/noVoid: marks a deliberately-unawaited promise
     void this._apply(theme);
   }
 
   private async _apply(theme: string): Promise<void> {
-    if (!this._config || !this.hass) return;
+    if (!(this._config && this.hass)) {
+      return;
+    }
     const cfg = this._config;
     const target: { entity_id?: string; area_id?: string } = {};
-    if (cfg.entity) target.entity_id = cfg.entity;
-    if (cfg.area_id) target.area_id = cfg.area_id;
+    if (cfg.entity) {
+      target.entity_id = cfg.entity;
+    }
+    if (cfg.area_id) {
+      target.area_id = cfg.area_id;
+    }
     const data: Record<string, unknown> = {
       theme,
       transition: cfg.transition ?? DEFAULTS.transition,
@@ -175,7 +182,7 @@ export class LifxThemePickerCard extends LitElement {
     this._busy = true;
     this._error = undefined;
     try {
-      await this.hass.callService('lifx', 'paint_theme', data, target);
+      await this.hass.callService("lifx", "paint_theme", data, target);
     } catch (err) {
       this._error = err instanceof Error ? err.message : String(err);
     } finally {
@@ -183,23 +190,42 @@ export class LifxThemePickerCard extends LitElement {
     }
   }
 
-  protected render() {
-    if (!this._config || !this.hass) return html``;
-    const title =
-      this._config.name ??
-      (this._config.entity
-        ? this.hass.states[this._config.entity]?.attributes.friendly_name ??
-          this._config.entity
-        : this._config.area_id ?? 'LIFX Themes');
+  // Resolved card title: explicit name, else the entity's friendly name, else
+  // the entity/area id, else a generic fallback.
+  private get _title(): string {
+    const { _config: config, hass } = this;
+    if (!(config && hass)) {
+      return "LIFX Themes";
+    }
+    if (config.name !== undefined) {
+      return config.name;
+    }
+    if (config.entity !== undefined) {
+      return (
+        hass.states[config.entity]?.attributes.friendly_name ?? config.entity
+      );
+    }
+    return config.area_id ?? "LIFX Themes";
+  }
 
+  protected render() {
+    if (!(this._config && this.hass)) {
+      return html``;
+    }
     const selected = this._selected;
-    const selectedPalette = selected ? this._palettes[selected] ?? [] : [];
+    const selectedPalette = selected ? (this._palettes[selected] ?? []) : [];
 
     return html`
       <ha-card>
         <div class="header">
-          <span>${title}</span>
-          ${this._busy ? html`<span class="status">applying…</span>` : ''}
+          <span>${this._title}</span>
+          <!-- _busy is reactive Lit state reassigned in _apply(); biome's flow
+               analysis sees only the initial \`false\` and wrongly reports the
+               branch as dead. -->
+          ${
+            // biome-ignore lint/suspicious/noUnnecessaryConditions: _busy is reassigned at runtime by _apply()
+            this._busy ? html`<span class="status">applying…</span>` : ""
+          }
         </div>
         <div class="body">
           <div class="list-pane">
@@ -217,21 +243,23 @@ export class LifxThemePickerCard extends LitElement {
             ></lifx-mesh-preview>
             <div class="preview-overlay">
               <div class="preview-title">
-                ${selected ? selected.replace(/_/g, ' ') : 'Pick a theme'}
+                ${selected ? selected.replace(/_/g, " ") : "Pick a theme"}
               </div>
               <div class="preview-meta">
                 <span
-                  >${selected
-                    ? `${selectedPalette.length} color${selectedPalette.length === 1 ? '' : 's'}`
-                    : ''}</span
+                  >${
+                    selected
+                      ? `${selectedPalette.length} color${selectedPalette.length === 1 ? "" : "s"}`
+                      : ""
+                  }</span
                 >
-                <span>${selected ? 'tap a theme to apply' : ''}</span>
+                <span>${selected ? "tap a theme to apply" : ""}</span>
               </div>
             </div>
           </div>
         </div>
-        <div class="status ${this._error ? 'error' : ''}">
-          ${this._error ?? ''}
+        <div class="status ${this._error ? "error" : ""}">
+          ${this._error ?? ""}
         </div>
       </ha-card>
     `;
@@ -240,15 +268,18 @@ export class LifxThemePickerCard extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lifx-theme-picker': LifxThemePickerCard;
+    "lifx-theme-picker": LifxThemePickerCard;
   }
-  interface Window {
-    customCards?: Array<{
-      type: string;
-      name: string;
-      description?: string;
-      preview?: boolean;
-      documentationURL?: string;
-    }>;
-  }
+  // The Lovelace custom-card registry, exposed by Home Assistant on the global
+  // object. Declared with `var` so it is reachable via `globalThis`; this is
+  // the canonical idiom for augmenting the global scope.
+  var customCards:
+    | Array<{
+        type: string;
+        name: string;
+        description?: string;
+        preview?: boolean;
+        documentationURL?: string;
+      }>
+    | undefined;
 }
